@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Records</title>
+</head>
+<body>
+    <h1>Weather Records</h1>
+
+    <h2>Create Weather Record</h2>
+    <form id="createWeatherForm">
+        <label for="city">City:</label>
+        <input type="text" id="city" name="city" required>
+        <label for="temperature">Temperature:</label>
+        <input type="text" id="temperature" name="temperature" required>
+        <button type="submit">Create</button>
+    </form>
+    
+    <h2>All Weather Records</h2>
+    <form id="searchWeatherForm">
+        <label style="font-weight: 800;" for="searchCity">Search By City Name:</label>
+        <input type="text" id="searchCity" name="searchCity" >
+        <button type="submit">Search</button>
+    </form>
+    <div id="weatherRecords"></div>
+
+
+
+    <script>
+          alert('before dom loaded')
+        document.addEventListener("DOMContentLoaded", function() {
+            alert('after dom loaded')
+            const createWeatherForm = document.getElementById("createWeatherForm");
+            const searchWeatherForm = document.getElementById("searchWeatherForm");
+            const weatherRecordsDiv = document.getElementById("weatherRecords");
+
+            function fetchWeatherRecords(url) {
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        weatherRecordsDiv.innerHTML = "";
+                        data.forEach(record => {
+                            const recordDiv = document.createElement("div");
+                            recordDiv.textContent = `City: ${record.city}, Temperature: ${record.temperature}`;
+                            weatherRecordsDiv.appendChild(recordDiv);
+                        });
+                    })
+                    .catch(error => {
+                        console.error("Error fetching weather records:", error);
+                        weatherRecordsDiv.textContent = "Error fetching weather records: " + error.message;
+                    });
+            }
+
+            fetchWeatherRecords("http://127.0.0.1:8000/weather/view_all/");
+
+            createWeatherForm.addEventListener("submit", function(event) {
+                event.preventDefault();
+
+                const city = document.getElementById("city").value;
+                const temperature = document.getElementById("temperature").value;
+
+                const data = { city, temperature };
+
+                fetch("http://127.0.0.1:8000/weather/create/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Success:", data);
+                    fetchWeatherRecords("http://127.0.0.1:8000/weather/view_all/");
+                })
+                .catch(error => {
+                    console.error("Error creating weather record:", error);
+                });
+            });
+
+            searchWeatherForm.addEventListener("submit", function(event) {
+                event.preventDefault();
+
+                const searchCity = document.getElementById("searchCity").value;
+
+                fetch(`http://127.0.0.1:8000/weather/search/?city=${searchCity}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        weatherRecordsDiv.innerHTML = "";
+                        data.forEach(record => {
+                            const recordDiv = document.createElement("div");
+                            recordDiv.textContent = `City: ${record.city}, Temperature: ${record.temperature}`;
+                            weatherRecordsDiv.appendChild(recordDiv);
+                        });
+                    })
+                    .catch(error => {
+                        console.error("Error searching weather records:", error);
+                        weatherRecordsDiv.textContent = "Error searching weather records: " + error.message;
+                    });
+            });
+        });
+    </script>
+</body>
+</html>
