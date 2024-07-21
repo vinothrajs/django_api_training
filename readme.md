@@ -1,3 +1,7 @@
+## Git pull repo
+
+https://github.com/vinothrajs/django_api_training.git
+
 ## Create Virtual env
 
 python -m venv env    
